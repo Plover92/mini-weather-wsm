@@ -1,4 +1,3 @@
-
 package cn.edu.pku.wangsimin.miniweather;
 
 import android.app.Activity;
@@ -7,9 +6,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,21 +27,33 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import cn.edu.pku.wangsimin.bean.TodayWeather;
 import cn.edu.pku.wangsimin.util.NetUtil;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends Activity implements View.OnClickListener,ViewPager.OnPageChangeListener {
 
     private static final int UPDATE_TODAY_WEATHER = 1;
 
     private ImageView mUpdateBtn;
+    private ProgressBar mProgressBar;
+    private ImageView mShareBtn;
+    private ImageView mLocateBtn;
 
     private ImageView mCitySelect;
 
     private TextView cityTv, timeTv, humidityTv, weekTv, pmDataTv, pmQualityTv,
             temperatureTv, climateTv, windTv, city_name_Tv;
     private ImageView weatherImg, pmImg;
+
+    private ViewPagerAdapter vpAdapter;
+    private ViewPager vp;
+    private List<View> views;
+
+    private ImageView[] dots;
+    private int[] ids = {R.id.iv4,R.id.iv5};
 
     private Handler mHandler = new Handler(){
         public void handleMessage(android.os.Message msg){
@@ -60,6 +75,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mUpdateBtn = (ImageView) findViewById(R.id.title_update_btn);
         mUpdateBtn.setOnClickListener(this);
 
+        mShareBtn = (ImageView) findViewById(R.id.title_share);
+        mLocateBtn = (ImageView) findViewById(R.id.title_location);
+
+        mProgressBar = (ProgressBar) findViewById(R.id.title_update_progress);
+
         if(NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE){
             Log.d("myWeather", "网络OK");
             Toast.makeText(MainActivity.this,"网络OK!", Toast.LENGTH_LONG).show();
@@ -73,6 +93,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mCitySelect.setOnClickListener(this);
 
         initView();
+        initDots();
+    }
+
+    void initDots(){
+        dots = new ImageView[views.size()];
+        for(int i=0; i<views.size(); i++){
+            dots[i]=(ImageView)findViewById(ids[i]);
+        }
     }
 
     void initView(){
@@ -99,6 +127,36 @@ public class MainActivity extends Activity implements View.OnClickListener {
         temperatureTv.setText("N/A");
         climateTv.setText("N/A");
         windTv.setText("N/A");
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        views = new ArrayList<View>();
+        views.add(inflater.inflate(R.layout.three_days1,null));
+        views.add(inflater.inflate(R.layout.three_days2,null));
+        vpAdapter = new ViewPagerAdapter(views,this);
+        vp = (ViewPager)findViewById(R.id.next_week_weather);
+        vp.setAdapter(vpAdapter);
+        vp.setOnPageChangeListener(this);
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int i) {
+        for(int a=0; a<ids.length; a++){
+            if(a == i){
+                dots[a].setImageResource(R.drawable.page_indicator_focused);
+            } else{
+                dots[a].setImageResource(R.drawable.page_indicator_unfocused);
+            }
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
     void updateTodayWeather(TodayWeather todayWeather){
@@ -112,24 +170,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
         temperatureTv.setText(todayWeather.getHigh()+"～"+todayWeather.getLow());
         climateTv.setText(todayWeather.getType());
         windTv.setText("风力:"+todayWeather.getFengli());
-        if(Integer.parseInt(todayWeather.getPm25())>0&&Integer.parseInt(todayWeather.getPm25())<=50){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_0_50);
+
+        if(todayWeather.getPm25() != null) {
+            int pm25 = Integer.parseInt(todayWeather.getPm25());
+            if(pm25>0&&pm25<=50){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_0_50);
+            }
+            else if(pm25>50&&pm25<=100){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_51_100);
+            }
+            else if(pm25>100&&pm25<=150){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_101_150);
+            }
+            else if(pm25>150&&pm25<=200){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_151_200);
+            }
+            else if(pm25>200&&pm25<=300){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_201_300);
+            }
+            else if(pm25>300){
+                pmImg.setImageResource(R.drawable.biz_plugin_weather_greater_300);
+            }
         }
-        else if(Integer.parseInt(todayWeather.getPm25())>50&&Integer.parseInt(todayWeather.getPm25())<=100){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_51_100);
-        }
-        else if(Integer.parseInt(todayWeather.getPm25())>100&&Integer.parseInt(todayWeather.getPm25())<=150){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_101_150);
-        }
-        else if(Integer.parseInt(todayWeather.getPm25())>150&&Integer.parseInt(todayWeather.getPm25())<=200){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_151_200);
-        }
-        else if(Integer.parseInt(todayWeather.getPm25())>200&&Integer.parseInt(todayWeather.getPm25())<=300){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_201_300);
-        }
-        else if(Integer.parseInt(todayWeather.getPm25())>300){
-            pmImg.setImageResource(R.drawable.biz_plugin_weather_greater_300);
-        }
+
         switch(todayWeather.getType()){
             case "暴雪":
                 weatherImg.setImageResource(R.drawable.biz_plugin_weather_baoxue);
@@ -192,6 +255,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 weatherImg.setImageResource(R.drawable.biz_plugin_weather_zhongyu);
                 break;
         }
+        mUpdateBtn.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.GONE);
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                mShareBtn.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.LEFT_OF,R.id.title_update_btn);
+        mShareBtn.setLayoutParams(layoutParams);
+
         Toast.makeText(MainActivity.this,"更新成功!",Toast.LENGTH_SHORT).show();
 
     }
@@ -234,6 +304,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                 eventType = xmlPullParser.next();
                                 todayWeather.setWendu(xmlPullParser.getText());
                             }else if(xmlPullParser.getName().equals("pm25")){
+                                //String pm25 = xmlPullParser.getName();
                                 eventType = xmlPullParser.next();
                                 todayWeather.setPm25(xmlPullParser.getText());
                             }else if(xmlPullParser.getName().equals("quality")){
@@ -341,6 +412,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
         if(view.getId() == R.id.title_update_btn){
+
+            mUpdateBtn.setVisibility(View.GONE);
+            mProgressBar.setVisibility(View.VISIBLE);
+            RelativeLayout.LayoutParams layoutParams =
+                    (RelativeLayout.LayoutParams) mShareBtn.getLayoutParams();
+            layoutParams.addRule(RelativeLayout.LEFT_OF,R.id.title_update_progress);
+            mShareBtn.setLayoutParams(layoutParams);
 
             SharedPreferences sharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
             String cityCode = sharedPreferences.getString("main_city_code","101010100");
