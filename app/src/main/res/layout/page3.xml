@@ -5,4 +5,16 @@
               android:layout_height="match_parent"
               android:background="@drawable/page3">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/enter_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enter_app"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="30dip"
+            android:layout_centerHorizontal="true"/>
+    </RelativeLayout>
 </LinearLayout>
