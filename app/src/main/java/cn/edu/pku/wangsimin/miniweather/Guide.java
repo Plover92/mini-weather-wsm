@@ -2,8 +2,8 @@ package cn.edu.pku.wangsimin.miniweather;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.view.LayoutInflaterCompat;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,8 +13,6 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.edu.pku.wangsimin.miniweather.R.layout.guide;
-import static cn.edu.pku.wangsimin.miniweather.R.layout.page3;
 
 /**
  * Created by wangsimin on 16/11/29.
@@ -34,10 +32,21 @@ public class Guide extends Activity implements ViewPager.OnPageChangeListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guide);
+        SharedPreferences preferences = getSharedPreferences("first_pref",MODE_PRIVATE);
+        boolean isFirstIn = preferences.getBoolean("isFirstIn",true);
+        if(isFirstIn == true){
+            //第一次进入后修改成false,以后进入就不会重新进入欢迎界面了
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("isFirstIn",false);
+            editor.commit();
+        }else{
+            Intent intent = new Intent(Guide.this,MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
         initViews();
         initDots();
-
 
     }
 
@@ -74,7 +83,6 @@ public class Guide extends Activity implements ViewPager.OnPageChangeListener {
                 finish();
             }
         });
-
     }
 
     @Override
