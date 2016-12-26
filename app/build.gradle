@@ -5,12 +5,19 @@ android {
     buildToolsVersion "24.0.3"
 
     defaultConfig {
-        applicationId "cn.edu.pku.wangsimin.miniweather_2"
+        applicationId "cn.edu.pku.wangsimin.miniweather"
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
     }
+    
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false

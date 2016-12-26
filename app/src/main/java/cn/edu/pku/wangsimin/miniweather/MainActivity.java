@@ -30,8 +30,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.edu.pku.wangsimin.app.MyApplication;
+import cn.edu.pku.wangsimin.bean.City;
 import cn.edu.pku.wangsimin.bean.TodayWeather;
 import cn.edu.pku.wangsimin.util.NetUtil;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.Poi;
 
 public class MainActivity extends Activity implements View.OnClickListener,ViewPager.OnPageChangeListener {
 
@@ -67,6 +75,13 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         }
     };
 
+    public LocationClient mLocationClient = null;
+    public BDLocationListener myListener = new MyLocationListener();
+    private MyApplication cityApplication;
+    private List<City> mcity;
+    private ArrayList<String> cityName = new ArrayList<String>();
+    private ArrayList<String> cityId = new ArrayList<String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +91,10 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         mUpdateBtn.setOnClickListener(this);
 
         mShareBtn = (ImageView) findViewById(R.id.title_share);
+        mShareBtn.setOnClickListener(this);
+
         mLocateBtn = (ImageView) findViewById(R.id.title_location);
+        mLocateBtn.setOnClickListener(this);
 
         mProgressBar = (ProgressBar) findViewById(R.id.title_update_progress);
 
@@ -433,6 +451,20 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
                 Toast.makeText(MainActivity.this,"网络挂了!", Toast.LENGTH_LONG).show();
             }
         }
+        if(view.getId() == R.id.title_location){
+            mLocationClient = new LocationClient(getApplicationContext());
+            // 设置定位参数
+            LocationClientOption option = new LocationClientOption();
+            option.setOpenGps(true);//打开GPS
+            option.setCoorType("bd09ll");//默认gcj02，设置返回的定位结果坐标系
+            //设置获取地址信息
+            option.setIsNeedAddress(true);
+            mLocationClient.setLocOption(option);
+            //注册监听函数
+            mLocationClient.registerLocationListener(myListener);
+            //调用此方法开始定位
+            mLocationClient.start();
+        }
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == 1 && resultCode == RESULT_OK){
@@ -449,4 +481,43 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
             }
         }
     }
+
+    public class MyLocationListener implements BDLocationListener {
+
+        @Override
+        public void onReceiveLocation(BDLocation location) {
+            if(location == null){
+                return;
+            }
+            Log.d("myWeather",location.getLocType()+"");
+            if(location.getLocType() == BDLocation.TypeNetWorkLocation){//网络定位结果
+                Toast.makeText(MainActivity.this,"定位成功:您位于"+location.getCity()
+                        +location.getDistrict(), Toast.LENGTH_SHORT).show();
+            }else if(location.getLocType() == BDLocation.TypeOffLineLocationFail
+                    || location.getLocType() == BDLocation.TypeOffLineLocation){
+                Toast.makeText(MainActivity.this, "定位失败，请检查网络是否开启", Toast.LENGTH_SHORT).show();
+            }
+            cityApplication = (MyApplication) getApplication();
+            mcity = cityApplication.getCityList();
+            for(int i = 0; i < mcity.size(); i++){
+                cityName.add(mcity.get(i).getCity());
+                cityId.add(mcity.get(i).getNumber());
+            }
+            String district = location.getDistrict().substring(0,location.getCity().length()-1);
+            String name = location.getCity().substring(0,location.getCity().length()-1);
+            int index = cityName.indexOf(district);
+            if(index == -1){
+                index = cityName.indexOf(name);
+            }
+            String citycode = cityId.get(index);
+            Log.d("myWeather",citycode);
+            if (NetUtil.getNetworkState(MainActivity.this) != NetUtil.NETWORN_NONE) {
+                queryWeatherCode(citycode);
+            }
+            SharedPreferences.Editor editor = getSharedPreferences("config", MODE_PRIVATE).edit();
+            editor.putString("main_city-code",citycode);
+            editor.commit();
+        }
+    }
 }
+
