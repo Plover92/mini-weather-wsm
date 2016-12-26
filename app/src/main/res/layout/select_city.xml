@@ -50,8 +50,7 @@
         android:background="@drawable/contact_search_box_edittext_keyword_background"
         android:textColor="#ff000000"
         android:textColorHint="#ffcccccc"
-        android:textSize="15.0sp"
-        />
+        android:textSize="15.0sp"/>
 
     <ListView
         android:id="@+id/city_list"
