@@ -32,7 +32,7 @@ public class Guide extends Activity implements ViewPager.OnPageChangeListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guide);
-        SharedPreferences preferences = getSharedPreferences("first_pref",MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences("config",MODE_PRIVATE);
         boolean isFirstIn = preferences.getBoolean("isFirstIn",true);
         if(isFirstIn == true){
             //第一次进入后修改成false,以后进入就不会重新进入欢迎界面了

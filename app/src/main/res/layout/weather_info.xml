@@ -183,9 +183,9 @@
 
         </RelativeLayout>
 
-        <!-- 七日天气信息 -->
+        <!-- 六日天气信息 -->
         <include
-            android:id="@+id/seven_days_weather"
+            android:id="@+id/six_days_weather"
             layout="@layout/next_week_weather" />
 
         <!-- 广告等信息 -->
